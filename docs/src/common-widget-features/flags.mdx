@@ -1,0 +1,62 @@
+---
+title: Flags
+description: Some widget attributes can be enabled or disabled with a dedicated lv_obj_set_<attribute>() function.
+---
+
+Some widget attributes can be enabled or disabled with a dedicated
+`lv_obj_set_<attribute>(widget, en)` function and most of them can be read back
+with `lv_obj_is_<attribute>(widget)`. To save memory, widgets store them in a bitfield.
+
+| Attribute | Setter / getter | Effect |
+|---|---|---|
+| hidden | <ApiLink name="lv_obj_set_hidden" /> / <ApiLink name="lv_obj_is_hidden" /> | Make the widget hidden (as if it weren't there at all) |
+| clickable | <ApiLink name="lv_obj_set_clickable" /> / <ApiLink name="lv_obj_is_clickable" /> | Make the widget clickable by input devices |
+| click focusable | <ApiLink name="lv_obj_set_click_focusable" /> / <ApiLink name="lv_obj_is_click_focusable" /> | Add the focused state to the widget when clicked |
+| checkable | <ApiLink name="lv_obj_set_checkable" /> / <ApiLink name="lv_obj_is_checkable" /> | Toggle the checked state when the widget is clicked |
+| scrollable | <ApiLink name="lv_obj_set_scrollable" /> / <ApiLink name="lv_obj_is_scrollable" /> | Make the widget scrollable |
+| scroll elastic | <ApiLink name="lv_obj_set_scroll_elastic" /> / <ApiLink name="lv_obj_is_scroll_elastic" /> | Allow elastic scrolling with slower movement |
+| scroll momentum | <ApiLink name="lv_obj_set_scroll_momentum" /> / <ApiLink name="lv_obj_is_scroll_momentum" /> | Continue scrolling when "thrown" |
+| scroll one | <ApiLink name="lv_obj_set_scroll_one" /> / <ApiLink name="lv_obj_is_scroll_one" /> | Allow scrolling only one snappable child |
+| scroll chain | <ApiLink name="lv_obj_set_scroll_chain" /> | Set both scroll chain axes at once |
+| scroll chain hor | <ApiLink name="lv_obj_set_scroll_chain_hor" /> / <ApiLink name="lv_obj_is_scroll_chain_hor" /> | Propagate horizontal scrolling to the parent |
+| scroll chain ver | <ApiLink name="lv_obj_set_scroll_chain_ver" /> / <ApiLink name="lv_obj_is_scroll_chain_ver" /> | Propagate vertical scrolling to the parent |
+| scroll on focus | <ApiLink name="lv_obj_set_scroll_on_focus" /> / <ApiLink name="lv_obj_is_scroll_on_focus" /> | Scroll the widget into view when it is focused |
+| scroll with arrow | <ApiLink name="lv_obj_set_scroll_with_arrow" /> / <ApiLink name="lv_obj_is_scroll_with_arrow" /> | Allow scrolling the focused widget with arrow keys |
+| snappable | <ApiLink name="lv_obj_set_snappable" /> / <ApiLink name="lv_obj_is_snappable" /> | Allow snapping if the parent has scroll snapping enabled |
+| press lock | <ApiLink name="lv_obj_set_press_lock" /> / <ApiLink name="lv_obj_is_press_lock" /> | Keep the pressed state even if the pointer slides outside |
+| event bubble | <ApiLink name="lv_obj_set_event_bubble" /> / <ApiLink name="lv_obj_is_event_bubble" /> | Propagate events to the parent |
+| event trickle | <ApiLink name="lv_obj_set_event_trickle" /> / <ApiLink name="lv_obj_is_event_trickle" /> | Propagate events to the children |
+| state trickle | <ApiLink name="lv_obj_set_state_trickle" /> / <ApiLink name="lv_obj_is_state_trickle" /> | Propagate state changes to the children |
+| gesture bubble | <ApiLink name="lv_obj_set_gesture_bubble" /> / <ApiLink name="lv_obj_is_gesture_bubble" /> | Propagate gestures to the parent |
+| adv hittest | <ApiLink name="lv_obj_set_adv_hittest" /> / <ApiLink name="lv_obj_is_adv_hittest" /> | More accurate hit testing, e.g. accounting for rounded corners |
+| ignore layout | <ApiLink name="lv_obj_set_ignore_layout" /> / <ApiLink name="lv_obj_is_ignore_layout" /> | Exclude the widget from layout positioning |
+| floating | <ApiLink name="lv_obj_set_floating" /> / <ApiLink name="lv_obj_is_floating" /> | Do not scroll with the parent, and ignore layout |
+| send draw dsc events | <ApiLink name="lv_obj_set_send_draw_dsc_events" /> / <ApiLink name="lv_obj_is_send_draw_dsc_events" /> | Send <ApiLink name="LV_EVENT_DRAW_DSC_BEGIN" /> and <ApiLink name="LV_EVENT_DRAW_DSC_END" /> events |
+| overflow visible | <ApiLink name="lv_obj_set_overflow_visible" /> / <ApiLink name="lv_obj_is_overflow_visible" /> | Let children overflow the widget's bounds. See <ApiLink name="lv_obj_set_ext_draw_size" /> |
+| radio button | <ApiLink name="lv_obj_set_radio_button" /> / <ApiLink name="lv_obj_is_radio_button" /> | Allow only one radio-button sibling to be checked |
+| flex in new track | <ApiLink name="lv_obj_set_flex_in_new_track" /> / <ApiLink name="lv_obj_is_flex_in_new_track" /> | Start a new flex track on this item |
+
+Some examples:
+
+```c
+/* Hide a Widget */
+lv_obj_set_hidden(widget, true);
+
+/* Make a Widget non-clickable */
+lv_obj_set_clickable(widget, false);
+
+/* Check if it is clickable */
+if(lv_obj_is_clickable(widget)) printf("Clickable\n");
+```
+
+## Custom flags
+
+Four bits per widget are free for application use.
+<ApiLink name="lv_obj_set_user_flag" display="lv_obj_set_user_flag(widget, bit, en)" /> and
+<ApiLink name="lv_obj_get_user_flag" display="lv_obj_get_user_flag(widget, bit)" />
+take a bit index from 0 to 3:
+
+```c
+lv_obj_set_user_flag(widget, 0, true);
+if(lv_obj_get_user_flag(widget, 0)) printf("User flag 0 is set\n");
+```

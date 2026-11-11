@@ -1,0 +1,103 @@
+/**
+ * @file lv_draw_dma2d_fill.c
+ *
+ */
+
+/*********************
+ *      INCLUDES
+ *********************/
+
+#include "lv_draw_dma2d_private.h"
+#if LV_USE_DRAW_DMA2D
+
+#include "../../misc/lv_area_private.h"
+
+/*********************
+ *      DEFINES
+ *********************/
+
+/**********************
+ *      TYPEDEFS
+ **********************/
+
+/**********************
+ *  STATIC PROTOTYPES
+ **********************/
+
+/**********************
+ *  STATIC VARIABLES
+ **********************/
+
+/**********************
+ *      MACROS
+ **********************/
+
+/**********************
+ *   GLOBAL FUNCTIONS
+ **********************/
+
+void lv_draw_dma2d_fill(lv_draw_unit_t * draw_unit, lv_layer_t * layer, const lv_area_t * clip_area,
+                        const lv_draw_fill_dsc_t * dsc, const lv_area_t * coords)
+{
+    LV_UNUSED(draw_unit);
+
+    lv_area_t clipped_coords;
+    if(!lv_area_intersect(&clipped_coords, coords, clip_area)) return;
+
+    void * first_pixel = lv_draw_layer_go_to_xy(layer, clipped_coords.x1 - layer->buf_area.x1,
+                                                clipped_coords.y1 - layer->buf_area.y1);
+    int32_t w = lv_area_get_width(&clipped_coords);
+    int32_t h = lv_area_get_height(&clipped_coords);
+    int32_t stride = lv_draw_buf_width_to_stride(lv_area_get_width(&layer->buf_area), layer->color_format);
+
+    lv_color_format_t cf = dsc->base.layer->color_format;
+    lv_opa_t opa = dsc->opa;
+
+    lv_draw_dma2d_output_cf_t output_cf = lv_draw_dma2d_cf_to_dma2d_output_cf(cf);
+    uint32_t cf_size = LV_COLOR_FORMAT_GET_SIZE(cf);
+
+    uint32_t output_offset = (stride / cf_size) - w;
+
+    lv_draw_dma2d_configuration_t conf = {
+        .mode = LV_DRAW_DMA2D_MODE_REGISTER_TO_MEMORY,
+        .w = w,
+        .h = h,
+
+        .output_address = first_pixel,
+        .output_offset = output_offset,
+        .output_cf = output_cf,
+    };
+
+    if(dsc->opa >= LV_OPA_MAX) {
+        conf.reg_to_mem_mode_color = lv_draw_dma2d_color_to_dma2d_color(output_cf, dsc->color);
+    }
+    else {
+        conf.mode = LV_DRAW_DMA2D_MODE_MEMORY_TO_MEMORY_WITH_BLENDING;
+        conf.fg_color = lv_color_to_u32(dsc->color);
+        conf.fg_address = first_pixel;
+        conf.fg_offset = output_offset;
+        conf.fg_alpha_mode = LV_DRAW_DMA2D_ALPHA_MODE_REPLACE_ALPHA_CHANNEL;
+        conf.fg_alpha = opa;
+        conf.fg_cf = LV_DRAW_DMA2D_FGBG_CF_A8;
+
+        conf.bg_address = first_pixel;
+        conf.bg_offset = output_offset;
+        conf.bg_alpha_mode = LV_DRAW_DMA2D_ALPHA_MODE_NO_MODIFY_IMAGE_ALPHA_CHANNEL;
+        conf.bg_alpha = opa;
+        conf.bg_cf = (lv_draw_dma2d_fgbg_cf_t) output_cf;
+
+        /* Background alpha channel should be treated as 0xFF if the cf is XRGB */
+        if(cf == LV_COLOR_FORMAT_XRGB8888) {
+            conf.bg_alpha_mode = LV_DRAW_DMA2D_ALPHA_MODE_REPLACE_ALPHA_CHANNEL;
+            conf.bg_alpha = 0xff;
+        }
+    }
+
+    lv_draw_dma2d_configure_and_start_transfer(&conf);
+}
+
+/**********************
+ *   STATIC FUNCTIONS
+ **********************/
+
+#endif /*LV_USE_DRAW_DMA2D*/

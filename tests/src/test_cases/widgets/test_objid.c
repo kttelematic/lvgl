@@ -1,0 +1,49 @@
+#if LV_BUILD_TEST
+#include "../lvgl.h"
+#include "../../lvgl_private.h"
+
+#include "unity/unity.h"
+#include <string.h>
+
+void test_obj_id_should_match_class_name(void)
+{
+    char buf[128];
+    lv_obj_t * obj = lv_obj_create(NULL);
+    lv_obj_stringify_id(obj, buf, sizeof(buf));
+
+    TEST_ASSERT_TRUE(strncmp("lv_obj", buf, strlen("lv_obj")) == 0);
+
+    lv_obj_t * img = lv_image_create(NULL);
+    lv_obj_stringify_id(img, buf, sizeof(buf));
+    TEST_ASSERT_TRUE(strncmp("lv_image", buf, strlen("lv_image")) == 0);
+}
+
+void test_obj_id_should_grow_by_one(void)
+{
+    uint32_t id1, id2;
+    lv_obj_t * obj1 = lv_label_create(NULL);
+    id1 = (lv_uintptr_t)obj1->id;
+    lv_obj_t * obj2 = lv_label_create(NULL);
+    id2 = (lv_uintptr_t)obj2->id;
+    TEST_ASSERT_EQUAL(id1 + 1, id2);
+}
+
+void test_objid_builtin_destroy_resets_storage(void)
+{
+    lv_global_t * global = LV_GLOBAL_DEFAULT();
+    TEST_ASSERT_NOT_NULL(global->objid_array);
+
+    lv_objid_builtin_destroy();
+    TEST_ASSERT_NULL(global->objid_array);
+    TEST_ASSERT_EQUAL_UINT32(0, global->objid_count);
+
+    /*Calling destroy repeatedly and assigning a new ID afterwards must be safe.*/
+    lv_objid_builtin_destroy();
+    lv_obj_t * obj = lv_obj_create(lv_screen_active());
+    TEST_ASSERT_NOT_NULL(global->objid_array);
+    TEST_ASSERT_EQUAL_UINT32(1, (lv_uintptr_t)obj->id);
+
+    lv_obj_delete(obj);
+}
+
+#endif

@@ -1,0 +1,456 @@
+"""Static text blocks for the generated headers.
+
+These are the hand-maintained, non-derived parts of each file (include logic,
+attribute fallbacks, platform bridges).  The option *bodies* are generated from
+the typed model; everything here is verbatim boilerplate.
+"""
+
+# ============================================================================
+# lv_conf_template.h
+# ============================================================================
+
+TEMPLATE_HEADER = """\
+/**
+ * @file lv_conf.h
+ * Configuration file for v{ver}
+ */
+
+/*
+ * Copy this file as `lv_conf.h`
+ * 1. simply next to `lvgl` folder
+ * 2. or to any other place and
+ *    - define `LV_CONF_INCLUDE_SIMPLE`;
+ *    - add the path as an include path.
+ */
+
+/* clang-format off */
+#if 0 /* Set this to "1" to enable content */
+
+#ifndef LV_CONF_H
+#define LV_CONF_H
+
+/* If you need to include anything here, do it inside the `__ASSEMBLY__` guard */
+#if 0 && defined(__ASSEMBLY__)
+#include "my_include.h"
+#endif
+"""
+
+TEMPLATE_FOOTER = """\
+/*--END OF LV_CONF_H--*/
+
+#endif /*LV_CONF_H*/
+
+#endif /*End of "Content enable"*/
+"""
+
+# ============================================================================
+# lv_conf_internal.h
+# ============================================================================
+
+INTERNAL_PREAMBLE = """\
+/**
+ * GENERATED FILE, DO NOT EDIT IT!
+ * @file lv_conf_internal.h
+ * This file ensures all defines of lv_conf.h have a default value.
+ */
+
+#ifndef LV_CONF_INTERNAL_H
+#define LV_CONF_INTERNAL_H
+/* clang-format off */
+
+#define LV_CONF_PASTE_(a, b) a##b
+#define LV_CONF_PASTE(a, b)  LV_CONF_PASTE_(a, b)
+
+/* Config options */
+__CONFIG_OPTIONS__
+
+/** Handle special Kconfig options. */
+#ifndef LV_KCONFIG_IGNORE
+    #include "lv_conf_kconfig.h"
+    #if defined(CONFIG_LV_CONF_SKIP) && !defined(LV_CONF_SKIP)
+        #define LV_CONF_SKIP
+    #endif
+#endif
+
+/* If "lv_conf.h" is available from here try to use it later. */
+#ifdef __has_include
+    #if __has_include("lv_conf.h")
+        #ifndef LV_CONF_INCLUDE_SIMPLE
+            #define LV_CONF_INCLUDE_SIMPLE
+        #endif
+    #endif
+#endif
+
+/* If lv_conf.h is not skipped, include it. */
+#if !defined(LV_CONF_SKIP) || defined(LV_CONF_PATH)
+    #ifdef LV_CONF_PATH                           /* If there is a path defined for lv_conf.h, use it */
+        #include LV_CONF_PATH                     /* Note: Make sure to define custom CONF_PATH as a string */
+    #elif defined(LV_CONF_INCLUDE_SIMPLE)         /* Or simply include lv_conf.h is enabled. */
+        #include "lv_conf.h"
+    #else
+        #include "../../../../lv_conf.h"                /* Else assume lv_conf.h is next to the lvgl folder. */
+    #endif
+    #if !defined(LV_CONF_H) && !defined(LV_CONF_SUPPRESS_DEFINE_CHECK)
+        /* #include will sometimes silently fail when __has_include is used */
+        /* https://gcc.gnu.org/bugzilla/show_bug.cgi?id=80753 */
+        #pragma message("Possible failure to include lv_conf.h, please read the comment in this file if you get errors")
+    #endif
+#endif
+
+#ifdef CONFIG_LV_STDLIB_BUILTIN
+    #define LV_KCONFIG_PRESENT
+#endif
+
+/*
+ * LV_COLOR_DEPTH was replaced by LV_COLOR_FORMAT_DEFAULT.
+ * Derive LV_COLOR_FORMAT_DEFAULT from it here
+ * TODO: Remove this for v10.
+ */
+#if !defined(LV_COLOR_FORMAT_DEFAULT) && defined(LV_COLOR_DEPTH)
+    #warning LV_COLOR_DEPTH is deprecated and will be removed in a future release. Define LV_COLOR_FORMAT_DEFAULT instead
+    #if LV_COLOR_DEPTH == 1
+        #define LV_COLOR_FORMAT_DEFAULT LV_COLOR_FORMAT_I1
+    #elif LV_COLOR_DEPTH == 8
+        #define LV_COLOR_FORMAT_DEFAULT LV_COLOR_FORMAT_L8
+    #elif LV_COLOR_DEPTH == 16
+        #define LV_COLOR_FORMAT_DEFAULT LV_COLOR_FORMAT_RGB565
+    #elif LV_COLOR_DEPTH == 24
+        #define LV_COLOR_FORMAT_DEFAULT LV_COLOR_FORMAT_RGB888
+    #elif LV_COLOR_DEPTH == 32
+        #define LV_COLOR_FORMAT_DEFAULT LV_COLOR_FORMAT_XRGB8888
+    #else
+        #error "LV_COLOR_DEPTH should be 1, 8, 16, 24 or 32"
+    #endif
+#endif
+
+/*----------------------------------
+ * Start parsing lv_conf_template.h
+ -----------------------------------*/
+"""
+
+INTERNAL_COMPATIBILITY_BLOCK = r"""
+/*----------------------------------
+ * End of parsing lv_conf_template.h
+ -----------------------------------*/
+
+/*----------------------------------
+ * Start of compatibility block
+ -----------------------------------*/
+
+/*----------------------------------
+ * End of compatibility block
+ -----------------------------------*/
+"""
+
+INTERNAL_OUTDATED_CONFIG_CHECK_BLOCK = r"""
+/*----------------------------------
+ * Start of outdated config check block
+ -----------------------------------*/
+
+#if defined(LV_COLOR_16_SWAP) && LV_COLOR_16_SWAP
+    #error LV_COLOR_16_SWAP has been removed. Use LV_COLOR_FORMAT_RGB565_SWAPPED as the display color format instead
+#endif
+
+/*----------------------------------
+ * End of outdated config check block
+ -----------------------------------*/
+"""
+
+INTERNAL_FOOTER = r"""
+#ifndef LV_ATTRIBUTE_MEM_ALIGN
+#define LV_ATTRIBUTE_MEM_ALIGN
+#endif
+
+#ifndef LV_ATTRIBUTE_TICK_INC
+#define LV_ATTRIBUTE_TICK_INC
+#endif
+
+#ifndef LV_ATTRIBUTE_TIMER_HANDLER
+#define LV_ATTRIBUTE_TIMER_HANDLER
+#endif
+
+#ifndef LV_ATTRIBUTE_FLUSH_READY
+#define LV_ATTRIBUTE_FLUSH_READY
+#endif
+
+#ifndef LV_ATTRIBUTE_SYNC_READY
+#define LV_ATTRIBUTE_SYNC_READY
+#endif
+
+#ifndef LV_ATTRIBUTE_LARGE_CONST
+#define LV_ATTRIBUTE_LARGE_CONST
+#endif
+
+#ifndef LV_ATTRIBUTE_LARGE_RAM_ARRAY
+#define LV_ATTRIBUTE_LARGE_RAM_ARRAY
+#endif
+
+#ifndef LV_ATTRIBUTE_FAST_MEM
+#define LV_ATTRIBUTE_FAST_MEM
+#endif
+
+#ifndef LV_ATTRIBUTE_EXTERN_DATA
+#define LV_ATTRIBUTE_EXTERN_DATA
+#endif
+
+#ifndef LV_EXPORT_CONST_INT
+#define LV_EXPORT_CONST_INT(int_value) struct _silence_gcc_warning
+#endif
+
+/*Fix inconsistent name*/
+#define LV_USE_ANIMIMAGE LV_USE_ANIMIMG
+
+#ifndef __ASSEMBLY__
+LV_EXPORT_CONST_INT(LV_DPI_DEF);
+LV_EXPORT_CONST_INT(LV_DRAW_BUF_STRIDE_ALIGN);
+LV_EXPORT_CONST_INT(LV_DRAW_BUF_ALIGN);
+#endif
+
+#undef LV_KCONFIG_PRESENT
+
+
+#if LV_USE_OS
+    #if (LV_USE_FREETYPE || LV_USE_THORVG) && LV_DRAW_THREAD_STACK_SIZE < (32 * 1024)
+        #error "Increase LV_DRAW_THREAD_STACK_SIZE to at least 32KB for FreeType or ThorVG."
+    #endif
+
+    #if defined(LV_DRAW_THREAD_STACKSIZE) && !defined(LV_DRAW_THREAD_STACK_SIZE)
+        #warning "LV_DRAW_THREAD_STACKSIZE was renamed to LV_DRAW_THREAD_STACK_SIZE. Please update lv_conf.h or run menuconfig again."
+        #define LV_DRAW_THREAD_STACK_SIZE LV_DRAW_THREAD_STACKSIZE
+    #endif
+#endif
+
+/*Allow only upper case letters and '/'  ('/' is a special case for backward compatibility)*/
+#define LV_FS_IS_VALID_LETTER(l) ((l) == '/' || ((l) >= 'A' && (l) <= 'Z'))
+
+/* If running without lv_conf.h, add typedefs with default value. */
+#ifdef LV_CONF_SKIP
+    #if defined(_MSC_VER) && !defined(_CRT_SECURE_NO_WARNINGS)    /*Disable warnings for Visual Studio*/
+        #define _CRT_SECURE_NO_WARNINGS
+    #endif
+#endif  /*defined(LV_CONF_SKIP)*/
+
+#ifndef LV_CHECK_ARG_LOG_MODE
+    #define LV_CHECK_ARG_LOG_MODE   0
+#endif
+"""
+
+# Closing guard of lv_conf_internal.h.  Kept separate from INTERNAL_FOOTER so the
+# generated `select` guards can be emitted between the footer derivations and the
+# final `#endif`.
+INTERNAL_CLOSE = """
+#endif  /*LV_CONF_INTERNAL_H*/
+"""
+
+# ============================================================================
+# lv_conf_kconfig.h  (the CONFIG_* -> enum/token bridge)
+# ============================================================================
+
+KCONFIG_BRIDGE_PREAMBLE = """\
+/**
+ * GENERATED FILE, DO NOT EDIT IT!
+ * @file lv_conf_kconfig.h
+ * Configs that need special handling when LVGL is used with Kconfig
+ */
+
+#ifndef LV_CONF_KCONFIG_H
+#define LV_CONF_KCONFIG_H
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+#ifdef LV_CONF_KCONFIG_EXTERNAL_INCLUDE
+#include LV_CONF_KCONFIG_EXTERNAL_INCLUDE
+#else
+
+#ifdef ESP_PLATFORM
+#include "sdkconfig.h"
+#include "esp_attr.h"
+#endif
+
+#ifdef __NuttX__
+#include <nuttx/config.h>
+/*
+ * Make sure version number in Kconfig file is correctly set.
+ * Mismatch can happen when user manually copy lvgl/Kconfig file to their project, like what NuttX does.
+ */
+#include "../lv_version.h"
+
+#if CONFIG_LVGL_VERSION_MAJOR != LVGL_VERSION_MAJOR || CONFIG_LVGL_VERSION_MINOR != LVGL_VERSION_MINOR \\
+        || CONFIG_LVGL_VERSION_PATCH != LVGL_VERSION_PATCH
+#warning "Version mismatch between Kconfig and lvgl/lv_version.h"
+#endif
+#elif defined(__RTTHREAD__)
+#define LV_CONF_INCLUDE_SIMPLE
+#include <lv_rt_thread_conf.h>
+#endif
+
+#endif /*LV_CONF_KCONFIG_EXTERNAL_INCLUDE*/
+
+"""
+
+KCONFIG_BRIDGE_DEPRECATIONS = ""
+
+KCONFIG_BRIDGE_UNSUPPORTED = """\
+
+/*
+ * CONFIG_* options that no longer exist and haven't worked _ever_ in Kconfig
+ *
+ * Up to v9.5 lv_conf_internal.h bridged CONFIG_<OPTION> to <OPTION> for every
+ * option it knew, including ones whose value is a C expression (an attribute,
+ * a function name, a macro body). Which are not part of kconfig and would
+ * get ignored by projects using them
+ *
+ */ 
+
+#ifndef LV_KCONFIG_IGNORE
+
+#ifdef CONFIG_LV_ASSERT_HANDLER
+#error "CONFIG_LV_ASSERT_HANDLER has no effect: LV_ASSERT_HANDLER is a C expression, which Kconfig cannot carry. To keep the setting, enable LV_ASSERT_USE_CUSTOM_INCLUDE and define LV_ASSERT_HANDLER in the header named by LV_ASSERT_CUSTOM_INCLUDE."
+#endif
+
+#ifdef CONFIG_LV_ATTRIBUTE_EXTERN_DATA
+#error "CONFIG_LV_ATTRIBUTE_EXTERN_DATA has no effect: LV_ATTRIBUTE_EXTERN_DATA is a C expression, which Kconfig cannot carry. To keep the setting, enable LV_ATTRIBUTE_USE_CUSTOM_INCLUDE and define LV_ATTRIBUTE_EXTERN_DATA in the header named by LV_ATTRIBUTE_CUSTOM_INCLUDE."
+#endif
+
+#ifdef CONFIG_LV_ATTRIBUTE_FAST_MEM
+#error "CONFIG_LV_ATTRIBUTE_FAST_MEM has no effect: LV_ATTRIBUTE_FAST_MEM is a C expression, which Kconfig cannot carry. To keep the setting, enable LV_ATTRIBUTE_USE_CUSTOM_INCLUDE and define LV_ATTRIBUTE_FAST_MEM in the header named by LV_ATTRIBUTE_CUSTOM_INCLUDE."
+#endif
+
+#ifdef CONFIG_LV_ATTRIBUTE_FLUSH_READY
+#error "CONFIG_LV_ATTRIBUTE_FLUSH_READY has no effect: LV_ATTRIBUTE_FLUSH_READY is a C expression, which Kconfig cannot carry. To keep the setting, enable LV_ATTRIBUTE_USE_CUSTOM_INCLUDE and define LV_ATTRIBUTE_FLUSH_READY in the header named by LV_ATTRIBUTE_CUSTOM_INCLUDE."
+#endif
+
+#ifdef CONFIG_LV_ATTRIBUTE_LARGE_CONST
+#error "CONFIG_LV_ATTRIBUTE_LARGE_CONST has no effect: LV_ATTRIBUTE_LARGE_CONST is a C expression, which Kconfig cannot carry. To keep the setting, enable LV_ATTRIBUTE_USE_CUSTOM_INCLUDE and define LV_ATTRIBUTE_LARGE_CONST in the header named by LV_ATTRIBUTE_CUSTOM_INCLUDE."
+#endif
+
+#ifdef CONFIG_LV_ATTRIBUTE_LARGE_RAM_ARRAY
+#error "CONFIG_LV_ATTRIBUTE_LARGE_RAM_ARRAY has no effect: LV_ATTRIBUTE_LARGE_RAM_ARRAY is a C expression, which Kconfig cannot carry. To keep the setting, enable LV_ATTRIBUTE_USE_CUSTOM_INCLUDE and define LV_ATTRIBUTE_LARGE_RAM_ARRAY in the header named by LV_ATTRIBUTE_CUSTOM_INCLUDE."
+#endif
+
+#ifdef CONFIG_LV_ATTRIBUTE_MEM_ALIGN
+#error "CONFIG_LV_ATTRIBUTE_MEM_ALIGN has no effect: LV_ATTRIBUTE_MEM_ALIGN is a C expression, which Kconfig cannot carry. To keep the setting, enable LV_ATTRIBUTE_USE_CUSTOM_INCLUDE and define LV_ATTRIBUTE_MEM_ALIGN in the header named by LV_ATTRIBUTE_CUSTOM_INCLUDE."
+#endif
+
+#ifdef CONFIG_LV_ATTRIBUTE_SYNC_READY
+#error "CONFIG_LV_ATTRIBUTE_SYNC_READY has no effect: LV_ATTRIBUTE_SYNC_READY is a C expression, which Kconfig cannot carry. To keep the setting, enable LV_ATTRIBUTE_USE_CUSTOM_INCLUDE and define LV_ATTRIBUTE_SYNC_READY in the header named by LV_ATTRIBUTE_CUSTOM_INCLUDE."
+#endif
+
+#ifdef CONFIG_LV_ATTRIBUTE_TICK_INC
+#error "CONFIG_LV_ATTRIBUTE_TICK_INC has no effect: LV_ATTRIBUTE_TICK_INC is a C expression, which Kconfig cannot carry. To keep the setting, enable LV_ATTRIBUTE_USE_CUSTOM_INCLUDE and define LV_ATTRIBUTE_TICK_INC in the header named by LV_ATTRIBUTE_CUSTOM_INCLUDE."
+#endif
+
+#ifdef CONFIG_LV_ATTRIBUTE_TIMER_HANDLER
+#error "CONFIG_LV_ATTRIBUTE_TIMER_HANDLER has no effect: LV_ATTRIBUTE_TIMER_HANDLER is a C expression, which Kconfig cannot carry. To keep the setting, enable LV_ATTRIBUTE_USE_CUSTOM_INCLUDE and define LV_ATTRIBUTE_TIMER_HANDLER in the header named by LV_ATTRIBUTE_CUSTOM_INCLUDE."
+#endif
+
+#ifdef CONFIG_LV_EXPORT_CONST_INT
+#error "CONFIG_LV_EXPORT_CONST_INT has no effect: LV_EXPORT_CONST_INT is a C expression, which Kconfig cannot carry. To keep the setting, enable LV_ATTRIBUTE_USE_CUSTOM_INCLUDE and define LV_EXPORT_CONST_INT in the header named by LV_ATTRIBUTE_CUSTOM_INCLUDE."
+#endif
+
+#ifdef CONFIG_LV_FONT_CUSTOM_DECLARE
+#error "CONFIG_LV_FONT_CUSTOM_DECLARE has no effect: LV_FONT_CUSTOM_DECLARE is a C expression, which Kconfig cannot carry. To keep the setting, enable LV_FONT_USE_CUSTOM_INCLUDE and define LV_FONT_CUSTOM_DECLARE in the header named by LV_FONT_CUSTOM_INCLUDE."
+#endif
+
+#ifdef CONFIG_LV_NEMA_STM32_HAL_ATTRIBUTE_POOL_MEM
+#error "CONFIG_LV_NEMA_STM32_HAL_ATTRIBUTE_POOL_MEM has no effect: LV_NEMA_STM32_HAL_ATTRIBUTE_POOL_MEM is a C expression, which Kconfig cannot carry. To keep the setting, enable LV_NEMA_USE_CUSTOM_INCLUDE and define LV_NEMA_STM32_HAL_ATTRIBUTE_POOL_MEM in the header named by LV_NEMA_CUSTOM_INCLUDE."
+#endif
+
+#ifdef CONFIG_LV_SYSMON_GET_IDLE
+#error "CONFIG_LV_SYSMON_GET_IDLE has no effect: LV_SYSMON_GET_IDLE is a C expression, which Kconfig cannot carry. To keep the setting, enable LV_SYSMON_USE_CUSTOM_INCLUDE and define LV_SYSMON_GET_IDLE in the header named by LV_SYSMON_CUSTOM_INCLUDE."
+#endif
+
+#ifdef CONFIG_LV_SYSMON_GET_PROC_IDLE
+#error "CONFIG_LV_SYSMON_GET_PROC_IDLE has no effect: LV_SYSMON_GET_PROC_IDLE is a C expression, which Kconfig cannot carry. To keep the setting, enable LV_SYSMON_USE_CUSTOM_INCLUDE and define LV_SYSMON_GET_PROC_IDLE in the header named by LV_SYSMON_CUSTOM_INCLUDE."
+#endif
+
+#ifdef CONFIG_LV_PROFILER_BEGIN
+#error "CONFIG_LV_PROFILER_BEGIN has no effect: LV_PROFILER_BEGIN is a C expression, which Kconfig cannot carry. To keep the setting, define LV_PROFILER_BEGIN in the header named by LV_PROFILER_INCLUDE."
+#endif
+
+#ifdef CONFIG_LV_PROFILER_BEGIN_TAG
+#error "CONFIG_LV_PROFILER_BEGIN_TAG has no effect: LV_PROFILER_BEGIN_TAG is a C expression, which Kconfig cannot carry. To keep the setting, define LV_PROFILER_BEGIN_TAG in the header named by LV_PROFILER_INCLUDE."
+#endif
+
+#ifdef CONFIG_LV_PROFILER_END
+#error "CONFIG_LV_PROFILER_END has no effect: LV_PROFILER_END is a C expression, which Kconfig cannot carry. To keep the setting, define LV_PROFILER_END in the header named by LV_PROFILER_INCLUDE."
+#endif
+
+#ifdef CONFIG_LV_PROFILER_END_TAG
+#error "CONFIG_LV_PROFILER_END_TAG has no effect: LV_PROFILER_END_TAG is a C expression, which Kconfig cannot carry. To keep the setting, define LV_PROFILER_END_TAG in the header named by LV_PROFILER_INCLUDE."
+#endif
+
+#endif /*LV_KCONFIG_IGNORE*/
+"""
+
+
+KCONFIG_BRIDGE_FOOTER = """\
+
+#ifdef __cplusplus
+} /*extern "C"*/
+#endif
+
+#endif /*LV_CONF_KCONFIG_H*/
+"""
+
+
+# ============================================================================
+# Hard-coded data
+# ============================================================================
+# The token -> font-pointer mapping for LV_FONT_DEFAULT: the `&lv_font_*`
+# pointers are C symbols, not config values.  LV_FONT_DEFAULT carries the
+# *token* on both build paths
+# (e.g. `LV_FONT_DEFAULT_MONTSERRAT_14`); these defines resolve it to the
+# pointer, so they are emitted into the internal "Config options" block.
+BUILTIN_FONTS: dict = {
+    f"LV_FONT_DEFAULT_MONTSERRAT_{n}": f"&lv_font_montserrat_{n}"
+    for n in (
+        8,
+        10,
+        12,
+        14,
+        16,
+        18,
+        20,
+        22,
+        24,
+        26,
+        28,
+        30,
+        32,
+        34,
+        36,
+        38,
+        40,
+        42,
+        44,
+        46,
+        48,
+    )
+}
+BUILTIN_FONTS.update(
+    {
+        "LV_FONT_DEFAULT_MONTSERRAT_28_COMPRESSED": "&lv_font_montserrat_28_compressed",
+        "LV_FONT_DEFAULT_DEJAVU_16_PERSIAN_HEBREW": "&lv_font_dejavu_16_persian_hebrew",
+        "LV_FONT_DEFAULT_SOURCE_HAN_SANS_SC_14_CJK": "&lv_font_source_han_sans_sc_14_cjk",
+        "LV_FONT_DEFAULT_SOURCE_HAN_SANS_SC_16_CJK": "&lv_font_source_han_sans_sc_16_cjk",
+        "LV_FONT_DEFAULT_UNSCII_8": "&lv_font_unscii_8",
+        "LV_FONT_DEFAULT_UNSCII_16": "&lv_font_unscii_16",
+    }
+)
+
+
+def version_string(kconf) -> str:
+    def val(name, default):
+        sym = kconf.syms.get(name)
+        return sym.str_value if sym else default
+
+    return ".".join(
+        (
+            val("LVGL_VERSION_MAJOR", "9"),
+            val("LVGL_VERSION_MINOR", "0"),
+            val("LVGL_VERSION_PATCH", "0"),
+        )
+    )
